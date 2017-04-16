@@ -1,20 +1,11 @@
 package swu.cs499.nmapforandroid;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -28,22 +19,18 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Display;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private DownloadTask downloadTask;
+    private static String NMAP_CMD = "";
 
     /**
      * Download buttons
@@ -91,7 +78,52 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setupWithViewPager(mViewPager);
 
         // check download
+        String path = getFilesDir().getAbsolutePath() + File.separator + "nmap" + File.separator + "nmap";
+        File nmap = new File(path);
+        if (!(nmap.exists())) {
+            // get permission
+            final int REQUEST_CODE = 157;
+            if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
 
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        REQUEST_CODE);
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        REQUEST_CODE);
+            }
+            needToDownload(this);
+        }
+
+        NMAP_CMD = path;
+    }
+
+    public void needToDownload(Context context) {
+        String string = "Nmap binary is not installed. Please go to settings and perform the following steps:" +
+                "\n\t1. Download binary\n\t2. Unzip binary\n\t3. Untar binary\n\t4. Move binary";
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        //set title
+        builder.setTitle("Nmap Not Installed");
+        builder
+                .setMessage(string)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        settingsDialog();
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        // Create the AlertDialog object and return it
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     @Override
@@ -233,6 +265,34 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.activity_scan, container, false);
+
+            Log.i("nmap", "create");
+
+            // scan button
+            Button scanButton = (Button) rootView.findViewById(R.id.scan_button);
+            scanButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        File nmapExe = new File(NMAP_CMD);
+                        // make executable
+                        if (!nmapExe.canExecute()) {
+                            nmapExe.setExecutable(true);
+                        }
+                        String[] cmd = {NMAP_CMD, "127.0.0.1"};
+                        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+                        Process process = processBuilder.start();
+                        processBuilder.redirectErrorStream(true);
+                        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                        String line;
+                        while((line = br.readLine()) != null) {
+                            Log.i("nmap", line);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
             return rootView;
         }
     }
@@ -316,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
         ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
         mProgressDialog.setMessage("Downloading...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -365,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
         ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
         mProgressDialog.setMessage("Extracting...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -380,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
         ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
         mProgressDialog.setMessage("Untarring...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -395,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
         ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
         mProgressDialog.setMessage("Moving...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);

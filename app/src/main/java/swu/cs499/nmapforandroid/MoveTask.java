@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,7 +50,7 @@ public class MoveTask extends AsyncTask<String, Integer, String> {
             if (!nmapExeDir.exists()) {
                 nmapExeDir.mkdirs();
             }
-            publishProgress(50);
+            publishProgress(30);
 
             File nmapExe = new File(files[0]);
             String nmapBin = "/sdcard/opt/nmap-7.31/bin/nmap";
