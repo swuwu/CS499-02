@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="10dp">
+
+    <Button
+        android:id="@+id/download_button"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="25"
+        android:layout_gravity="center_vertical"
+        android:background="@color/colorPrimaryDark"
+        android:text="Download binary"
+        android:outlineProvider="paddedBounds"/>
+
+    <Button
+        android:id="@+id/extract_button"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="25"
+        android:layout_gravity="center_vertical"
+        android:background="@color/colorPrimaryDark"
+        android:text="Extract binary"
+        android:outlineProvider="paddedBounds"/>
+
+    <Button
+        android:id="@+id/untar_button"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="25"
+        android:layout_gravity="center_vertical"
+        android:background="@color/colorPrimaryDark"
+        android:text="Untar binary"
+        android:outlineProvider="paddedBounds"/>
+
+    <Button
+        android:id="@+id/move_button"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="25"
+        android:layout_gravity="center_vertical"
+        android:background="@color/colorPrimaryDark"
+        android:text="Move binary"
+        android:outlineProvider="paddedBounds"/>
+
+</LinearLayout>

@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="swu.cs499.nmapforandroid.MainActivity">
+
+    <item
+        android:id="@+id/about_settings"
+        android:title="@string/about_settings"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/download_settings"
+        android:title="@string/download_settings"
+        app:showAsAction="never"/>
+</menu>

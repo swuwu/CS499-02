@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">NmapForAndroid</string>
+    <string name="clear_log_button">clear log</string>
+    <string name="cancel">cancel</string>
+
+    <!-- Settings -->
+    <string name="about_settings">About</string>
+    <string name="download_settings">Download</string>
+
+    <!-- Scan Strings -->
+    <string name="tab_1">Scan</string>
+    <string name="ip_address_box">IP Address : </string>
+    <string name="default_ip">127.0.0.1</string>
+    <string name="scan_button">Start Scan</string>
+
+    <!-- Device Strings -->
+    <string name="tab_2">Devices</string>
+</resources>
