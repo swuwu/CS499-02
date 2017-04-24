@@ -15,4 +15,5 @@
 
     <!-- Device Strings -->
     <string name="tab_2">Devices</string>
+    <string name="label">Hosts found : </string>
 </resources>

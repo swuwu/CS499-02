@@ -24,7 +24,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,14 +54,6 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager mViewPager;
     private static String NMAP_CMD = "";
 
-    /**
-     * Download buttons
-     */
-    /*
-    private Button mExtract = (Button) findViewById(R.id.extract_button);
-    private Button mUntar = (Button) findViewById(R.id.untar_button);
-    private Button mMove = (Button) findViewById(R.id.move_button);
-    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void aboutDialog(Context context) {
-        String string = "nmap 7.31\n\nSamantha Wu\n\nCS499-02\n\nhtps://github.com/SamWu157/CS499-02";
+        String string = "nmap 7.31\n\n" + System.getProperty("os") + "\n\n";
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         //set title
@@ -264,37 +260,89 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.activity_scan, container, false);
+            final View rootView = inflater.inflate(R.layout.activity_scan, container, false);
 
-            Log.i("nmap", "create");
+            // dropdown menu
+            final Spinner scanType = (Spinner) rootView.findViewById(R.id.scan_type);
+            String[] types = {"host", "port"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_spinner_dropdown_item, types);
+            scanType.setAdapter(adapter);
 
             // scan button
-            Button scanButton = (Button) rootView.findViewById(R.id.scan_button);
+            final Button scanButton = (Button) rootView.findViewById(R.id.scan_button);
             scanButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    try {
-                        File nmapExe = new File(NMAP_CMD);
-                        // make executable
-                        if (!nmapExe.canExecute()) {
-                            nmapExe.setExecutable(true);
-                        }
-                        String[] cmd = {NMAP_CMD, "127.0.0.1"};
-                        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-                        Process process = processBuilder.start();
-                        processBuilder.redirectErrorStream(true);
-                        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                        String line;
-                        while((line = br.readLine()) != null) {
-                            Log.i("nmap", line);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                String type = "";
+                switch(scanType.getSelectedItemPosition()) {
+                    case 0:
+                        type = "host";
+                        break;
+                    case 1:
+                        type = "port";
+                        break;
+                }
+
+                File nmapExe = new File(NMAP_CMD);
+                // make executable
+                if (!nmapExe.canExecute()) {
+                    nmapExe.setExecutable(true);
+                }
+
+                // get ip address
+                EditText ipAdressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
+                String ipAddress = ipAdressInput.getText().toString();
+                if (ipAddress.equals("")) {
+                    ipAddress = "127.0.0.1";
+                }
+
+                String[] cmd;
+                StringBuilder output = new StringBuilder();
+                ProcessBuilder processBuilder = null;
+                if (type.equals("host")) {
+                    cmd = new String[] {NMAP_CMD, "-sn", ipAddress};
+
+                } else {
+                    cmd = new String[]{NMAP_CMD, "-sV", ipAddress};
+                }
+
+                // run nmap in background
+
+                try {
+                    processBuilder = new ProcessBuilder(cmd);
+                    Process process = processBuilder.start();
+                    processBuilder.redirectErrorStream(true);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+                    String line = "";
+                    TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
+                    setText(scanOutput, "");
+                    while ((line = br.readLine()) != null) {
+                        line = scanOutput.getText().toString() + "\n" + line;
+                        setText(scanOutput, line);
                     }
+                } catch (IOException e) {
+
+                }
                 }
             });
+
+            // clear button
+            Button clearButton = (Button) rootView.findViewById(R.id.clear_scan_button);
+            clearButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
+                    setText(scanOutput, "");
+                }
+            });
+
             return rootView;
         }
+    }
+
+    public static void setText(TextView tv, String output) {
+        tv.setText(output);
     }
 
     /**
