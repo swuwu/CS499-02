@@ -18,7 +18,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -130,14 +129,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void aboutDialog(Context context) {
-        String string = "nmap 7.31\n\n" + System.getProperty("os") + "\n\n";
+        String string = "Nmap Version:\t\t7.31\n\n" + "Architecture:\t\t\t" + System.getProperty("os.arch") + "\n\n";
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         //set title
         builder.setTitle("About");
         builder
                 .setMessage(string)
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                .setNegativeButton("OK" +
+                        "", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }
@@ -413,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     return "Scan";
                 case 1:
-                    return "Devices";
+                    return "Topology";
             }
             return null;
         }
@@ -442,7 +442,6 @@ public class MainActivity extends AppCompatActivity {
 
         // get os
         String os = System.getProperty("os.arch");
-        Log.i("arch", System.getProperty("os.arch"));
         String url = "";
         if (os.contains("arch64")) {
             url = urls.get("arch64");

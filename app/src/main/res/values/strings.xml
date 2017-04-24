@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NmapForAndroid</string>
+    <string name="app_name">Network Scanner</string>
     <string name="clear_log_button">clear log</string>
     <string name="cancel">cancel</string>
 
