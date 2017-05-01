@@ -12,9 +12,11 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 
@@ -57,6 +59,14 @@ public class UntarTask extends AsyncTask<String, Integer, String> {
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
             input = process.getInputStream();
+
+            /*
+            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while((line = br.readLine()) != null) {
+                Log.i("untar", line);
+            }
+            */
 
             publishProgress(100);
         } catch (Exception e) {

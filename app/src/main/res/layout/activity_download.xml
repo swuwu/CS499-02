@@ -26,6 +26,7 @@
         android:text="Extract binary"
         android:outlineProvider="paddedBounds"/>
 
+    <!--
     <Button
         android:id="@+id/untar_button"
         android:layout_width="match_parent"
@@ -35,6 +36,7 @@
         android:background="@color/colorPrimaryDark"
         android:text="Untar binary"
         android:outlineProvider="paddedBounds"/>
+        -->
 
     <Button
         android:id="@+id/move_button"

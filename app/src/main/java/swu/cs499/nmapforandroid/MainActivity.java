@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
     private static String NMAP_CMD = "";
+    private static String CHECK_PATH = "";
 
 
     @Override
@@ -93,12 +95,14 @@ public class MainActivity extends AppCompatActivity {
             needToDownload(this);
         }
 
+        CHECK_PATH = getFilesDir().getAbsolutePath() + File.separator + "nmap" + File.separator;
+
         NMAP_CMD = path;
     }
 
     public void needToDownload(Context context) {
         String string = "Nmap binary is not installed. Please go to settings and perform the following steps:" +
-                "\n\t1. Download binary\n\t2. Unzip binary\n\t3. Untar binary\n\t4. Move binary";
+                "\n\t1. Download binary\n\t2. Unzip binary\n\t3. Move binary";
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         //set title
@@ -155,30 +159,34 @@ public class MainActivity extends AppCompatActivity {
 
         Button downloadButton = (Button) promptView.findViewById(R.id.download_button);
         Button extractButton = (Button) promptView.findViewById(R.id.extract_button);
-        Button untarButton = (Button) promptView.findViewById(R.id.untar_button);
+        //Button untarButton = (Button) promptView.findViewById(R.id.untar_button);
         Button moveButton = (Button) promptView.findViewById(R.id.move_button);
 
         downloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                download();
+                downloadNmap();
+                downloadBinary();
+                //download();
             }
         });
 
         extractButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                extract();
+                //extract();
+                unzipBinary();
+                unzipNmap();
             }
         });
-
+/*
         untarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 untar();
             }
         });
-
+*/
         moveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -273,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
             scanButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                 String type = "";
                 switch(scanType.getSelectedItemPosition()) {
                     case 0:
@@ -288,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!nmapExe.canExecute()) {
                     nmapExe.setExecutable(true);
                 }
+
 
                 // get ip address
                 EditText ipAdressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
@@ -317,13 +327,16 @@ public class MainActivity extends AppCompatActivity {
                     String line = "";
                     TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
                     setText(scanOutput, "");
+                    Log.i("scan", "start");
                     while ((line = br.readLine()) != null) {
+                        Log.i("scan", line);
                         line = scanOutput.getText().toString() + "\n" + line;
                         setText(scanOutput, line);
                     }
                 } catch (IOException e) {
 
                 }
+
                 }
             });
 
@@ -419,6 +432,70 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void downloadBinary() {
+        // declare the dialog as a member field of your activity
+        ProgressDialog mProgressDialog;
+
+        // instantiate it within the onCreate method
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        mProgressDialog.setMessage("Downloading...");
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(true);
+
+        // execute this when the downloader must be fired
+        final DownloadTask binaries = new DownloadTask(MainActivity.this, mProgressDialog, true);
+        HashMap<String, String> urls = new HashMap<String, String>();
+        urls.put("arch64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-binaries-arm64-v8a.zip");
+        urls.put("arm", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-binaries-armeabi.zip");
+        urls.put("i686", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-binaries-x86.zip");
+        urls.put("mips64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-binaries-mips64el.zip");
+        urls.put("mipsel", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-binaries-mips.zip");
+        urls.put("x86_64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-binaries-x86_64.zip");
+
+        // get os
+        String os = System.getProperty("os.arch");
+        String url = "";
+        if (os.contains("arch64")) {
+            url = urls.get("arch64");
+        } else if (os.contains("arm")) {
+            url = urls.get("arm");
+        } else if (os.contains("i686")) {
+            url = urls.get("i686");
+        } else if (os.contains("mips64el")) {
+            url = urls.get("mips64el");
+        } else if (os.contains("mipsel")) {
+            url = urls.get("mipsel");
+        } else if (os.contains("x86_64")) {
+            url = urls.get("x86_64");
+        } else {
+            return;
+        }
+        binaries.execute(url);
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                binaries.cancel(true);
+            }
+        });
+    }
+
+    public void downloadNmap() {
+        // declare the dialog as a member field of your activity
+        ProgressDialog mProgressDialog;
+
+        // instantiate it within the onCreate method
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        mProgressDialog.setMessage("Downloading...");
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(true);
+
+        final DownloadTask data = new DownloadTask(MainActivity.this, mProgressDialog, false);
+        data.execute("https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-data.zip");
+    }
+
+    /*
     public void download() {
         // declare the dialog as a member field of your activity
         ProgressDialog mProgressDialog;
@@ -431,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
         mProgressDialog.setCancelable(true);
 
         // execute this when the downloader must be fired
-        final DownloadTask downloadTask = new DownloadTask(MainActivity.this, mProgressDialog);
+        final DownloadTask binaries = new DownloadTask(MainActivity.this, mProgressDialog, true);
         HashMap<String, String> urls = new HashMap<String, String>();
         urls.put("arch64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-aarch64-bin.tar.bz2");
         urls.put("arm", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-arm-bin.tar.bz2");
@@ -458,45 +535,45 @@ public class MainActivity extends AppCompatActivity {
         } else {
             return;
         }
-        downloadTask.execute(url);
+        binaries.execute(url);
         mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
         @Override
             public void onCancel(DialogInterface dialog) {
-                downloadTask.cancel(true);
+                binaries.cancel(true);
             }
         });
+
     }
 
-    public void extract() {
-        // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        public void extract() {
+            // declare the dialog as a member field of your activity
+            ProgressDialog mProgressDialog;
 
-        // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        mProgressDialog.setMessage("Extracting...");
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCancelable(true);
-        final ExtractTask extractTask = new ExtractTask(MainActivity.this, mProgressDialog);
-        String path = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + "/nmap.tar.bz2";
-        extractTask.execute(path);
-    }
+            // instantiate it within the onCreate method
+            mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+            mProgressDialog.setMessage("Extracting...");
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            mProgressDialog.setCancelable(true);
+            final ExtractTask extractTask = new ExtractTask(MainActivity.this, mProgressDialog);
+            String path = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + "/nmap.tar.bz2";
+            extractTask.execute(path);
+        }
+        public void untar() {
+            // declare the dialog as a member field of your activity
+            ProgressDialog mProgressDialog;
 
-    public void untar() {
-        // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
-
-        // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        mProgressDialog.setMessage("Untarring...");
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCancelable(true);
-        final UntarTask untarTask = new UntarTask(MainActivity.this, mProgressDialog);
-        String path = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.tar";
-        untarTask.execute(path);
-    }
-
+            // instantiate it within the onCreate method
+            mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+            mProgressDialog.setMessage("Untarring...");
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            mProgressDialog.setCancelable(true);
+            final UntarTask untarTask = new UntarTask(MainActivity.this, mProgressDialog);
+            String path = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.tar";
+            untarTask.execute(path);
+        }
+    */
     public void move() {
         // declare the dialog as a member field of your activity
         ProgressDialog mProgressDialog;
@@ -511,5 +588,36 @@ public class MainActivity extends AppCompatActivity {
         String path = getFilesDir().getAbsolutePath() + File.separator + "nmap" + File.separator + "nmap";
         moveTask.execute(path);
     }
+
+    public void unzipNmap() {
+        // declare the dialog as a member field of your activity
+        ProgressDialog mProgressDialog;
+
+        // instantiate it within the onCreate method
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        mProgressDialog.setMessage("Extracting...");
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(true);
+        final UnzipTask unzipNmap = new UnzipTask(MainActivity.this, mProgressDialog, false);
+        String nmap = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.zip";
+        unzipNmap.execute(nmap);
+    }
+
+    public void unzipBinary() {
+        // declare the dialog as a member field of your activity
+        ProgressDialog mProgressDialog;
+
+        // instantiate it within the onCreate method
+        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
+        mProgressDialog.setMessage("Extracting...");
+        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mProgressDialog.setCancelable(true);
+        String bin = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap-binary.zip";
+        final UnzipTask unzipBin = new UnzipTask(MainActivity.this, mProgressDialog, true);
+        unzipBin.execute(bin);
+    }
+
 }
 

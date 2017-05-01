@@ -27,10 +27,12 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
     private Context context;
     private PowerManager.WakeLock mWakeLock;
     ProgressDialog mProgressDialog;
+    private boolean binary;
 
-    public DownloadTask(Context context, ProgressDialog progressDialog) {
+    public DownloadTask(Context context, ProgressDialog progressDialog, boolean binary) {
         this.context = context;
         this.mProgressDialog = progressDialog;
+        this.binary = binary;
     }
 
     @Override
@@ -56,7 +58,13 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
 
             // download the file
             input = connection.getInputStream();
-            String filepath = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.tar.bz2";
+            String filepath;
+            if (binary) {
+                filepath = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap-binary.zip";
+//                filepath = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.tar.bz2";
+            } else {
+                filepath = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.zip";
+            }
             output = new FileOutputStream(filepath);
 
             byte data[] = new byte[4096];

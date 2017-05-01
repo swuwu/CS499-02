@@ -13,11 +13,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.Buffer;
 
 
 /**
@@ -59,6 +62,12 @@ public class MoveTask extends AsyncTask<String, Integer, String> {
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
             input = process.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(input));
+            String line;
+            Log.i("move", "start");
+            while ((line = br.readLine()) != null) {
+                Log.i("move", line);
+            }
 
             publishProgress(100);
         } catch (Exception e) {
