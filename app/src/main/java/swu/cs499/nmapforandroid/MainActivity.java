@@ -3,6 +3,7 @@ package swu.cs499.nmapforandroid;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -18,7 +19,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,10 +30,13 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
     private static String NMAP_CMD = "";
-    private static String CHECK_PATH = "";
+    private static ArrayList<Host> hosts = new ArrayList<Host>();
 
 
     @Override
@@ -95,9 +98,8 @@ public class MainActivity extends AppCompatActivity {
             needToDownload(this);
         }
 
-        CHECK_PATH = getFilesDir().getAbsolutePath() + File.separator + "nmap" + File.separator;
-
         NMAP_CMD = path;
+
     }
 
     public void needToDownload(Context context) {
@@ -265,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
             return fragment;
         }
 
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
@@ -282,61 +285,71 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-                String type = "";
-                switch(scanType.getSelectedItemPosition()) {
-                    case 0:
-                        type = "host";
-                        break;
-                    case 1:
-                        type = "port";
-                        break;
-                }
-
-                File nmapExe = new File(NMAP_CMD);
-                // make executable
-                if (!nmapExe.canExecute()) {
-                    nmapExe.setExecutable(true);
-                }
-
-
-                // get ip address
-                EditText ipAdressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
-                String ipAddress = ipAdressInput.getText().toString();
-                if (ipAddress.equals("")) {
-                    ipAddress = "127.0.0.1";
-                }
-
-                String[] cmd;
-                StringBuilder output = new StringBuilder();
-                ProcessBuilder processBuilder = null;
-                if (type.equals("host")) {
-                    cmd = new String[] {NMAP_CMD, "-sn", ipAddress};
-
-                } else {
-                    cmd = new String[]{NMAP_CMD, "-sV", ipAddress};
-                }
-
-                // run nmap in background
-
-                try {
-                    processBuilder = new ProcessBuilder(cmd);
-                    Process process = processBuilder.start();
-                    processBuilder.redirectErrorStream(true);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                    String line = "";
-                    TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
-                    setText(scanOutput, "");
-                    Log.i("scan", "start");
-                    while ((line = br.readLine()) != null) {
-                        Log.i("scan", line);
-                        line = scanOutput.getText().toString() + "\n" + line;
-                        setText(scanOutput, line);
+                    String type = "";
+                    switch (scanType.getSelectedItemPosition()) {
+                        case 0:
+                            type = "host";
+                            break;
+                        case 1:
+                            type = "port";
+                            break;
                     }
-                } catch (IOException e) {
 
-                }
+                    File nmapExe = new File(NMAP_CMD);
+                    // make executable
+                    if (!nmapExe.canExecute()) {
+                        nmapExe.setExecutable(true);
+                    }
 
+                    // get ip address
+                    EditText ipAdressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
+                    String ipAddress = ipAdressInput.getText().toString();
+                    if (ipAddress.equals("")) {
+                        ipAddress = "127.0.0.1";
+                    }
+
+                    String[] cmd;
+                    StringBuilder output = new StringBuilder();
+                    ProcessBuilder processBuilder = null;
+                    if (type.equals("host")) {
+                        cmd = new String[]{NMAP_CMD, "-sn", ipAddress};
+                    } else {
+                        cmd = new String[]{NMAP_CMD, "-sV", ipAddress};
+                    }
+
+                    // run nmap
+                    try {
+                        processBuilder = new ProcessBuilder(cmd);
+                        Process process = processBuilder.start();
+                        processBuilder.redirectErrorStream(true);
+                        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+                        String line;
+                        TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
+                        setText(scanOutput, "");
+                        while ((line = br.readLine()) != null) {
+                            if (line.contains("scan report for")) {
+                                String[] parse = line.split(" ");
+                                String ip = parse[parse.length - 1];
+                                Host host = new Host(ip);
+                                boolean add = true;
+                                for (Host h : hosts) {
+                                    if (h.getIP().equals(host.getIP())) {
+                                        add = false;
+                                    }
+                                }
+                                if (add) {
+                                    hosts.add(host);
+                                }
+                            }
+                            line = scanOutput.getText().toString() + "\n" + line;
+                            setText(scanOutput, line);
+
+                        }
+                    } catch (IOException e) {
+
+                    }
+                    callDeviceUpdate();
                 }
             });
 
@@ -354,6 +367,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public static void callDeviceUpdate() {
+        DeviceFragment.updateDevice();
+    }
+
     public static void setText(TextView tv, String output) {
         tv.setText(output);
     }
@@ -367,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+
 
         public DeviceFragment() {
         }
@@ -383,12 +401,63 @@ public class MainActivity extends AppCompatActivity {
             return fragment;
         }
 
+        static TextView deviceOutput;
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.activity_device, container, false);
+            final View rootView = inflater.inflate(R.layout.activity_device, container, false);
+
+            /*try {
+                String[] cmd = new String[]{NMAP_CMD, "-sn", "127.0.0.1"};
+                ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+                Process process = processBuilder.start();
+                processBuilder.redirectErrorStream(true);
+                BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.contains("scan report for")) {
+                        String[] parse = line.split(" ");
+                        String ip = parse[parse.length - 1];
+                        Host host = new Host(ip);
+                        hosts.add(host);
+                    }
+                }
+            } catch (IOException e) {}*/
+
+            deviceOutput = (TextView) rootView.findViewById(R.id.device_output);
+
+            // clear button
+            Button clearButton = (Button) rootView.findViewById(R.id.clear_device_button);
+            clearButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView deviceOutput= (TextView) rootView.findViewById(R.id.device_output);
+                    setText(deviceOutput, "");
+                }
+            });
+
             return rootView;
         }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            updateDevice();
+        }
+
+        public static void updateDevice() {
+            int i = 0;
+            String line;
+            setText(deviceOutput, "");
+            for (Host h : hosts) {
+                line =  deviceOutput.getText().toString() + "Host " + i + ":\n";
+                line += h.getIP() + "\n\n";
+                setText(deviceOutput, line);
+            }
+        }
+
     }
 
     /**
@@ -426,7 +495,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     return "Scan";
                 case 1:
-                    return "Topology";
+                    return "Found";
             }
             return null;
         }
@@ -618,6 +687,5 @@ public class MainActivity extends AppCompatActivity {
         final UnzipTask unzipBin = new UnzipTask(MainActivity.this, mProgressDialog, true);
         unzipBin.execute(bin);
     }
-
 }
 
