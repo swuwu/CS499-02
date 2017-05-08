@@ -1,7 +1,5 @@
 package swu.cs499.nmapforandroid;
 
-import java.util.ArrayList;
-
 /**
  * Created by swu on 5/1/17.
  */
