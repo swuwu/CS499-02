@@ -7,6 +7,7 @@ package swu.cs499.nmapforandroid;
 public class Host {
 
     private String ip;
+    private String name;
 
     public Host(String ip) {
         this.ip = ip;
@@ -14,5 +15,13 @@ public class Host {
 
     public String getIP() {
         return ip;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 }

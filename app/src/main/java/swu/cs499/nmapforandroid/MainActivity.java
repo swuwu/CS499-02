@@ -326,9 +326,18 @@ public class MainActivity extends AppCompatActivity {
                         setText(scanOutput, "");
                         while ((line = br.readLine()) != null) {
                             if (line.contains("scan report for")) {
-                                String[] parse = line.split(" ");
-                                String ip = parse[parse.length - 1];
+                                String ip = line.substring(line.indexOf("scan report for") + 16);
+                                String name = "";
+                                if (ip.contains("(")) {
+                                    name = ip.split(" ")[1];
+                                    ip = ip.split(" ") [0];
+                                    name = name.substring(1, name.length() - 1);
+                                    String tmp = ip;
+                                    ip = name;
+                                    name = tmp;
+                                }
                                 Host host = new Host(ip);
+                                host.setName(name);
                                 boolean add = true;
                                 for (Host h : hosts) {
                                     if (h.getIP().equals(host.getIP())) {
@@ -450,7 +459,12 @@ public class MainActivity extends AppCompatActivity {
             setText(deviceOutput, "");
             for (Host h : hosts) {
                 line =  deviceOutput.getText().toString() + "Host " + i + ":\n";
-                line += h.getIP() + "\n\n";
+                line += h.getIP();
+                if (!h.getName().equals("")) {
+                    line += " (" + h.getName() + ")\n\n";
+                } else {
+                    line += "\n\n";
+                }
                 setText(deviceOutput, line);
             }
         }
