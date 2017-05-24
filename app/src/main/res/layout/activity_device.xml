@@ -19,17 +19,7 @@
                 android:layout_gravity="left"
                 android:gravity="center"
                 android:text="@string/label"
-                android:textSize="18dp"
-                android:textColor="#FFFFFFFF"/>
-
-            <TextView
-                android:id="@+id/ip_address"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="70"
-                android:layout_gravity="right"
-                android:gravity="center_vertical"
-                android:textSize="18dp"
+                android:textSize="30dp"
                 android:textColor="#FFFFFFFF"/>
 
         </LinearLayout>
@@ -37,7 +27,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="80"
+            android:layout_weight="90"
             android:orientation="vertical"
             android:padding="10dp">
 
@@ -53,9 +43,43 @@
                     android:id="@+id/device_output"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:typeface="monospace"
+                    android:textSize="20dp"
                     android:background="#FFC3CCD1"/>
 
             </ScrollView>
+
+            <!-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="80"
+                android:orientation="horizontal">
+
+                <ScrollView
+                    android:id="@+id/SCROLLER_ID"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="50"
+                    android:scrollbars="vertical"
+                    android:fillViewport="true">
+
+                    <TextView
+                        android:id="@+id/device_output"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#FFC3CCD1"/>
+
+                </ScrollView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="50"
+                    android:orientation="vertical">
+                </LinearLayout>
+            </LinearLayout>
+            -->
 
             <Button
                 android:id="@+id/clear_device_button"

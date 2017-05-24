@@ -5,32 +5,32 @@ package swu.cs499.nmapforandroid;
  */
 
 public class Port {
-    Host h;
-    String port;
-    String protocol;
+    int num;
+    String type;
     String service;
-    String version;
+    //String version;
 
-    public Port(Host h, String port, String protocol, String service, String version) {
-        this.port = port;
-        this.protocol = protocol;
+    public Port(int num, String type, String service) {
+        this.num = num;
+        this.type = type;
         this.service = service;
-        this.version = version;
     }
 
-    public String getPort() {
-        return port;
+    public int getPort() {
+        return num;
     }
 
-    public String getProtocol() {
-        return protocol;
+    public String getType() {
+        return type;
     }
 
     public String getService() {
         return service;
     }
 
+    /*
     public String getVersion() {
         return version;
     }
+    */
 }

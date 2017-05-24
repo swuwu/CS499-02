@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -178,14 +179,7 @@ public class MainActivity extends AppCompatActivity {
                 unzipNmap();
             }
         });
-/*
-        untarButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                untar();
-            }
-        });
-*/
+
         moveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -272,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
 
             // dropdown menu
             final Spinner scanType = (Spinner) rootView.findViewById(R.id.scan_type);
-            String[] types = {"host", "port"};
+            String[] types = {"host only", "port"};
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_spinner_dropdown_item, types);
             scanType.setAdapter(adapter);
 
@@ -311,7 +305,8 @@ public class MainActivity extends AppCompatActivity {
                     if (type.equals("host")) {
                         cmd = new String[]{NMAP_CMD, "-sn", ipAddress};
                     } else {
-                        cmd = new String[]{NMAP_CMD, "-sV", ipAddress};
+                        ipAddress = ipAddress.split("/")[0];
+                        cmd = new String[]{NMAP_CMD, ipAddress};
                     }
 
                     // run nmap
@@ -324,33 +319,69 @@ public class MainActivity extends AppCompatActivity {
                         String line;
                         TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
                         setText(scanOutput, "");
+                        String ip = "";
+                        String name = "";
+                        ArrayList<Port> ports = new ArrayList<Port>();
+                        boolean start = false;
                         while ((line = br.readLine()) != null) {
                             if (line.contains("scan report for")) {
-                                String ip = line.substring(line.indexOf("scan report for") + 16);
-                                String name = "";
+                                start = true;
+                                ip = line.substring(line.indexOf("scan report for") + 16);
+                                name = "";
                                 if (ip.contains("(")) {
                                     name = ip.split(" ")[1];
-                                    ip = ip.split(" ") [0];
+                                    ip = ip.split(" ")[0];
                                     name = name.substring(1, name.length() - 1);
                                     String tmp = ip;
                                     ip = name;
                                     name = tmp;
                                 }
-                                Host host = new Host(ip);
+                            } else if (line.contains("PORT")) {
+                                line = scanOutput.getText().toString() + "\n" + line;
+                                setText(scanOutput, line);
+                                while (!(line = br.readLine()).equals("")) {
+                                    String[] parsed = line.split(" ");
+                                    int num = Integer.parseInt(parsed[0].split("/")[0]);
+                                    String portType = parsed[0].split("/")[1];
+                                    String service = parsed[parsed.length - 1];
+                                    Port p = new Port(num, portType, service);
+                                    ports.add(p);
+                                    line = scanOutput.getText().toString() + "\n" + line;
+                                    setText(scanOutput, line);
+                                }
+                            }
+                            if (line.equals("") && start) {
+                                start = false;
+                                boolean exists = false;
+                                Host host = new Host(ip, ports);
                                 host.setName(name);
-                                boolean add = true;
                                 for (Host h : hosts) {
                                     if (h.getIP().equals(host.getIP())) {
-                                        add = false;
+                                        hosts.set(hosts.indexOf(h), host);
+                                        exists = true;
                                     }
                                 }
-                                if (add) {
+                                if (!exists) {
                                     hosts.add(host);
                                 }
                             }
                             line = scanOutput.getText().toString() + "\n" + line;
                             setText(scanOutput, line);
 
+                        }
+                        if (start) {
+                            boolean exists = false;
+                            Host host = new Host(ip, ports);
+                            host.setName(name);
+                            for (Host h : hosts) {
+                                if (h.getIP().equals(host.getIP())) {
+                                    hosts.set(hosts.indexOf(h), host);
+                                    exists = true;
+                                }
+                            }
+                            if (!exists) {
+                                hosts.add(host);
+                            }
                         }
                     } catch (IOException e) {
 
@@ -414,24 +445,6 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             final View rootView = inflater.inflate(R.layout.activity_device, container, false);
 
-            /*try {
-                String[] cmd = new String[]{NMAP_CMD, "-sn", "127.0.0.1"};
-                ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-                Process process = processBuilder.start();
-                processBuilder.redirectErrorStream(true);
-                BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (line.contains("scan report for")) {
-                        String[] parse = line.split(" ");
-                        String ip = parse[parse.length - 1];
-                        Host host = new Host(ip);
-                        hosts.add(host);
-                    }
-                }
-            } catch (IOException e) {}*/
-
             deviceOutput = (TextView) rootView.findViewById(R.id.device_output);
 
             // clear button
@@ -439,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
             clearButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    hosts.clear();
                     TextView deviceOutput= (TextView) rootView.findViewById(R.id.device_output);
                     setText(deviceOutput, "");
                 }
@@ -458,14 +472,32 @@ public class MainActivity extends AppCompatActivity {
             String line;
             setText(deviceOutput, "");
             for (Host h : hosts) {
-                line =  deviceOutput.getText().toString() + "Host " + i + ":\n";
+                line =  deviceOutput.getText().toString() + "\n";
                 line += h.getIP();
                 if (!h.getName().equals("")) {
-                    line += " (" + h.getName() + ")\n\n";
+                    line += " (" + h.getName() + ")\n";
                 } else {
-                    line += "\n\n";
+                    line += "\n";
+                }
+                ArrayList<Port> ports = h.getPorts();
+                if (ports.size() != 0) {
+                    line += "Ports Found:\n";
+                    line += "PORT     TYPE     SERVICE\n";
+                    for (Port p : ports) {
+                        line += p.getPort();
+                        for (int x = 0; x < 9 - Integer.toString(p.getPort()).length(); x++) {
+                            line += " ";
+                        }
+                        Log.i("parse", Integer.toString(Integer.toString(p.getPort()).length()));
+                        line += p.getType();
+                        for (int x = 0; x < 9 - p.getType().length(); x++) {
+                            line += " ";
+                        }
+                        line += p.getService() + "\n";
+                    }
                 }
                 setText(deviceOutput, line);
+                i++;
             }
         }
 
@@ -575,85 +607,6 @@ public class MainActivity extends AppCompatActivity {
         data.execute("https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-data.zip");
     }
 
-    /*
-    public void download() {
-        // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
-
-        // instantiate it within the onCreate method
-        mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        mProgressDialog.setMessage("Downloading...");
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.setCancelable(true);
-
-        // execute this when the downloader must be fired
-        final DownloadTask binaries = new DownloadTask(MainActivity.this, mProgressDialog, true);
-        HashMap<String, String> urls = new HashMap<String, String>();
-        urls.put("arch64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-aarch64-bin.tar.bz2");
-        urls.put("arm", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-arm-bin.tar.bz2");
-        urls.put("i686", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-i686-bin.tar.bz2");
-        urls.put("mips64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-mips64el-bin.tar.bz2");
-        urls.put("mipsel", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-mipsel-bin.tar.bz2");
-        urls.put("x86_64", "https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-android-x86_64-bin.tar.bz2");
-
-        // get os
-        String os = System.getProperty("os.arch");
-        String url = "";
-        if (os.contains("arch64")) {
-            url = urls.get("arch64");
-        } else if (os.contains("arm")) {
-            url = urls.get("arm");
-        } else if (os.contains("i686")) {
-            url = urls.get("i686");
-        } else if (os.contains("mips64el")) {
-            url = urls.get("mips64el");
-        } else if (os.contains("mipsel")) {
-            url = urls.get("mipsel");
-        } else if (os.contains("x86_64")) {
-            url = urls.get("x86_64");
-        } else {
-            return;
-        }
-        binaries.execute(url);
-        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-        @Override
-            public void onCancel(DialogInterface dialog) {
-                binaries.cancel(true);
-            }
-        });
-
-    }
-
-        public void extract() {
-            // declare the dialog as a member field of your activity
-            ProgressDialog mProgressDialog;
-
-            // instantiate it within the onCreate method
-            mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-            mProgressDialog.setMessage("Extracting...");
-            mProgressDialog.setIndeterminate(true);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            mProgressDialog.setCancelable(true);
-            final ExtractTask extractTask = new ExtractTask(MainActivity.this, mProgressDialog);
-            String path = Environment.getExternalStorageDirectory() + File.separator + Environment.DIRECTORY_DOWNLOADS + "/nmap.tar.bz2";
-            extractTask.execute(path);
-        }
-        public void untar() {
-            // declare the dialog as a member field of your activity
-            ProgressDialog mProgressDialog;
-
-            // instantiate it within the onCreate method
-            mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-            mProgressDialog.setMessage("Untarring...");
-            mProgressDialog.setIndeterminate(true);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            mProgressDialog.setCancelable(true);
-            final UntarTask untarTask = new UntarTask(MainActivity.this, mProgressDialog);
-            String path = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.tar";
-            untarTask.execute(path);
-        }
-    */
     public void move() {
         // declare the dialog as a member field of your activity
         ProgressDialog mProgressDialog;
