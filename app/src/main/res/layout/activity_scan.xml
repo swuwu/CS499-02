@@ -88,6 +88,7 @@
                     android:id="@+id/scan_output"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:textSize="18dp"
                     android:background="#FFC3CCD1"/>
 
             </ScrollView>

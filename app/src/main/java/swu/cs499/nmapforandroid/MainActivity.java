@@ -103,11 +103,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void needToDownload(Context context) {
-        String string = "Nmap is not installed. Please go to settings to install";
+        String string = "Nmap is not installed. Please press OK to start install or go to settings to download and install Nmap.";
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         //set title
-        builder.setTitle("Nmap Not Installed");
+        builder.setTitle("Nmap is Not Installed");
         builder
                 .setMessage(string)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -153,32 +153,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void settingsDialog() {
-        LayoutInflater layoutInflater = LayoutInflater.from(this);
-        View promptView = layoutInflater.inflate(R.layout.activity_download, null);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
-        builder.setTitle("Settings\n");
 
-        Button downloadButton = (Button) promptView.findViewById(R.id.download_button);
-
-        downloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ProgressDialog mProgressDialog = null;
-                downloadNmap(mProgressDialog);
-                downloadBinary(mProgressDialog);
-                unzipBinary(mProgressDialog);
-                unzipNmap(mProgressDialog);
-                move(mProgressDialog);
-            }
-        });
-        builder.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
-
-        builder.setView(promptView);
-        builder.show();
+        ProgressDialog mProgressDialog = null;
+        downloadNmap(mProgressDialog);
+        downloadBinary(mProgressDialog);
+        unzipBinary(mProgressDialog);
+        unzipNmap(mProgressDialog);
+        move(mProgressDialog);
     }
 
     @Override
@@ -372,8 +353,13 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
 
-                    } catch (IOException e) {
 
+
+                    } catch (IOException e) {
+                        TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
+                        setText(scanOutput, "");
+                        setText(scanOutput, "Error: Scan Failed\n\n" +
+                            "Nmap may not be installed. Please go to settings to download and install Nmap.\n\n");
                     }
                     callDeviceUpdate();
                 }
@@ -471,7 +457,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public static void updateDevice() {
-            int i = 0;
             String line;
             setText(deviceOutput, "");
             for (Host h : hosts) {
@@ -500,7 +485,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 setText(deviceOutput, line);
-                i++;
             }
         }
 

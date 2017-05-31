@@ -5,7 +5,7 @@
 
     <!-- Settings -->
     <string name="about_settings">About</string>
-    <string name="download_settings">Download</string>
+    <string name="download_settings">Install Nmap</string>
 
     <!-- Scan Strings -->
     <string name="tab_1">Scan</string>
