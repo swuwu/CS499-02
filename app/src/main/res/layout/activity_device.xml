@@ -49,38 +49,6 @@
 
             </ScrollView>
 
-            <!-->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="80"
-                android:orientation="horizontal">
-
-                <ScrollView
-                    android:id="@+id/SCROLLER_ID"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="50"
-                    android:scrollbars="vertical"
-                    android:fillViewport="true">
-
-                    <TextView
-                        android:id="@+id/device_output"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="#FFC3CCD1"/>
-
-                </ScrollView>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="50"
-                    android:orientation="vertical">
-                </LinearLayout>
-            </LinearLayout>
-            -->
-
             <Button
                 android:id="@+id/clear_device_button"
                 android:layout_width="match_parent"

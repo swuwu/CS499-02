@@ -37,6 +37,8 @@
                 android:layout_gravity="right"
                 android:layout_weight="40"
                 android:hint="@string/default_ip"
+                android:inputType="phone"
+                android:imeOptions="actionGo"
                 android:textColorHint="#FFFFFFFF"
                 android:textColor="#FFFFFFFF"/>
 

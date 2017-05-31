@@ -19,11 +19,13 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -159,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
 
         Button downloadButton = (Button) promptView.findViewById(R.id.download_button);
         Button extractButton = (Button) promptView.findViewById(R.id.extract_button);
-        //Button untarButton = (Button) promptView.findViewById(R.id.untar_button);
         Button moveButton = (Button) promptView.findViewById(R.id.move_button);
 
         downloadButton.setOnClickListener(new View.OnClickListener() {
@@ -266,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
             // dropdown menu
             final Spinner scanType = (Spinner) rootView.findViewById(R.id.scan_type);
-            String[] types = {"host only", "port"};
+            String[] types = {"host only (-sn)", "ports (normal scan)"};
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_spinner_dropdown_item, types);
             scanType.setAdapter(adapter);
 
@@ -293,8 +294,8 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // get ip address
-                    EditText ipAdressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
-                    String ipAddress = ipAdressInput.getText().toString();
+                    EditText ipAddressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
+                    String ipAddress = ipAddressInput.getText().toString();
                     if (ipAddress.equals("")) {
                         ipAddress = "127.0.0.1";
                     }
@@ -367,26 +368,40 @@ public class MainActivity extends AppCompatActivity {
                             }
                             line = scanOutput.getText().toString() + "\n" + line;
                             setText(scanOutput, line);
-
-                        }
-                        if (start) {
-                            boolean exists = false;
-                            Host host = new Host(ip, ports);
-                            host.setName(name);
-                            for (Host h : hosts) {
-                                if (h.getIP().equals(host.getIP())) {
-                                    hosts.set(hosts.indexOf(h), host);
-                                    exists = true;
+                            if (start) {
+                                boolean exists = false;
+                                Host host = new Host(ip, ports);
+                                host.setName(name);
+                                for (Host h : hosts) {
+                                    if (h.getIP().equals(host.getIP())) {
+                                        hosts.set(hosts.indexOf(h), host);
+                                        exists = true;
+                                    }
+                                }
+                                if (!exists) {
+                                    hosts.add(host);
                                 }
                             }
-                            if (!exists) {
-                                hosts.add(host);
-                            }
                         }
+
                     } catch (IOException e) {
 
                     }
                     callDeviceUpdate();
+                }
+            });
+
+            // enter button
+            EditText ipAddressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
+            ipAddressInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    boolean handled = false;
+                    if (actionId == EditorInfo.IME_ACTION_GO) {
+                        scanButton.callOnClick();
+                        handled = true;
+                    }
+                    return handled;
                 }
             });
 
