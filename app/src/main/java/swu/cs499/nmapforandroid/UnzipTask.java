@@ -48,7 +48,10 @@ public class UnzipTask extends AsyncTask<String, Integer, String> {
                 // extract
                 publishProgress(0);
                 File unzip = new File(files[0]);
+                publishProgress(33);
                 unzip(unzip, bin);
+                publishProgress(66);
+                unzip.delete();
                 publishProgress(100);
             } else {
                 String nmapString = "/sdcard/opt/";
@@ -60,7 +63,10 @@ public class UnzipTask extends AsyncTask<String, Integer, String> {
                 // extract nmap
                 publishProgress(0);
                 File unzip = new File(files[0]);
+                publishProgress(33);
                 unzip(unzip, nmap);
+                publishProgress(66);
+                unzip.delete();
                 publishProgress(100);
             }
         } catch (Exception e) {
@@ -119,11 +125,11 @@ public class UnzipTask extends AsyncTask<String, Integer, String> {
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 getClass().getName());
         mWakeLock.acquire();
-        mProgressDialog.show();
     }
 
     @Override
     protected void onProgressUpdate(Integer... progress) {
+        mProgressDialog.show();
         super.onProgressUpdate(progress);
         // if we get here, length is known, now set indeterminate to false
         mProgressDialog.setIndeterminate(false);
@@ -137,7 +143,5 @@ public class UnzipTask extends AsyncTask<String, Integer, String> {
         mProgressDialog.dismiss();
         if (result != null)
             Toast.makeText(context,"Extract error: "+result, Toast.LENGTH_LONG).show();
-        else
-            Toast.makeText(context,"Extract finished", Toast.LENGTH_SHORT).show();
     }
 }

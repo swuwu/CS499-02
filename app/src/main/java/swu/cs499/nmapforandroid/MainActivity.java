@@ -19,11 +19,13 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -101,12 +103,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void needToDownload(Context context) {
-        String string = "Nmap binary is not installed. Please go to settings and perform the following steps:" +
-                "\n\t1. Download binary\n\t2. Unzip binary\n\t3. Move binary";
+        String string = "Nmap is not installed. Please press OK to start install or go to settings to download and install Nmap.";
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         //set title
-        builder.setTitle("Nmap Not Installed");
+        builder.setTitle("Nmap is Not Installed");
         builder
                 .setMessage(string)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -152,49 +153,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void settingsDialog() {
-        LayoutInflater layoutInflater = LayoutInflater.from(this);
-        View promptView = layoutInflater.inflate(R.layout.activity_download, null);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
-        builder.setTitle("Settings\n");
 
-        Button downloadButton = (Button) promptView.findViewById(R.id.download_button);
-        Button extractButton = (Button) promptView.findViewById(R.id.extract_button);
-        //Button untarButton = (Button) promptView.findViewById(R.id.untar_button);
-        Button moveButton = (Button) promptView.findViewById(R.id.move_button);
-
-        downloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                downloadNmap();
-                downloadBinary();
-                //download();
-            }
-        });
-
-        extractButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //extract();
-                unzipBinary();
-                unzipNmap();
-            }
-        });
-
-        moveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                move();
-            }
-        });
-
-        builder.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
-
-        builder.setView(promptView);
-        builder.show();
+        ProgressDialog mProgressDialog = null;
+        downloadNmap(mProgressDialog);
+        downloadBinary(mProgressDialog);
+        unzipBinary(mProgressDialog);
+        unzipNmap(mProgressDialog);
+        move(mProgressDialog);
     }
 
     @Override
@@ -224,8 +189,13 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_CODE);
             }
-
-            settingsDialog();
+            ProgressDialog mProgressDialog = null;
+            downloadNmap(mProgressDialog);
+            downloadBinary(mProgressDialog);
+            unzipBinary(mProgressDialog);
+            unzipNmap(mProgressDialog);
+            move(mProgressDialog);
+            //settingsDialog();
 
             return true;
         }
@@ -266,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
             // dropdown menu
             final Spinner scanType = (Spinner) rootView.findViewById(R.id.scan_type);
-            String[] types = {"host only", "port"};
+            String[] types = {"host only (-sn)", "ports (normal scan)"};
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(rootView.getContext(), android.R.layout.simple_spinner_dropdown_item, types);
             scanType.setAdapter(adapter);
 
@@ -293,8 +263,8 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     // get ip address
-                    EditText ipAdressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
-                    String ipAddress = ipAdressInput.getText().toString();
+                    EditText ipAddressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
+                    String ipAddress = ipAddressInput.getText().toString();
                     if (ipAddress.equals("")) {
                         ipAddress = "127.0.0.1";
                     }
@@ -367,26 +337,45 @@ public class MainActivity extends AppCompatActivity {
                             }
                             line = scanOutput.getText().toString() + "\n" + line;
                             setText(scanOutput, line);
-
-                        }
-                        if (start) {
-                            boolean exists = false;
-                            Host host = new Host(ip, ports);
-                            host.setName(name);
-                            for (Host h : hosts) {
-                                if (h.getIP().equals(host.getIP())) {
-                                    hosts.set(hosts.indexOf(h), host);
-                                    exists = true;
+                            if (start) {
+                                boolean exists = false;
+                                Host host = new Host(ip, ports);
+                                host.setName(name);
+                                for (Host h : hosts) {
+                                    if (h.getIP().equals(host.getIP())) {
+                                        hosts.set(hosts.indexOf(h), host);
+                                        exists = true;
+                                    }
+                                }
+                                if (!exists) {
+                                    hosts.add(host);
                                 }
                             }
-                            if (!exists) {
-                                hosts.add(host);
-                            }
                         }
-                    } catch (IOException e) {
 
+
+
+                    } catch (IOException e) {
+                        TextView scanOutput = (TextView) rootView.findViewById(R.id.scan_output);
+                        setText(scanOutput, "");
+                        setText(scanOutput, "Error: Scan Failed\n\n" +
+                            "Nmap may not be installed. Please go to settings to download and install Nmap.\n\n");
                     }
                     callDeviceUpdate();
+                }
+            });
+
+            // enter button
+            EditText ipAddressInput = (EditText) rootView.findViewById(R.id.ip_address_input);
+            ipAddressInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    boolean handled = false;
+                    if (actionId == EditorInfo.IME_ACTION_GO) {
+                        scanButton.callOnClick();
+                        handled = true;
+                    }
+                    return handled;
                 }
             });
 
@@ -468,7 +457,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public static void updateDevice() {
-            int i = 0;
             String line;
             setText(deviceOutput, "");
             for (Host h : hosts) {
@@ -481,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 ArrayList<Port> ports = h.getPorts();
                 if (ports.size() != 0) {
-                    line += "Ports Found:\n";
+                    line += "Open Ports:\n";
                     line += "PORT     TYPE     SERVICE\n";
                     for (Port p : ports) {
                         line += p.getPort();
@@ -497,7 +485,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 setText(deviceOutput, line);
-                i++;
             }
         }
 
@@ -544,9 +531,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void downloadBinary() {
+
+    public void downloadBinary(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -583,7 +571,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
             return;
         }
-        binaries.execute(url);
+        try {
+            binaries.execute(url);
+        } catch (Exception e) {}
         mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
@@ -592,9 +582,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void downloadNmap() {
+    public void downloadNmap(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -605,26 +595,38 @@ public class MainActivity extends AppCompatActivity {
 
         final DownloadTask data = new DownloadTask(MainActivity.this, mProgressDialog, false);
         data.execute("https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-data.zip");
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                data.cancel(true);
+            }
+        });
     }
 
-    public void move() {
+    public void move(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        mProgressDialog.setMessage("Moving...");
+        mProgressDialog.setMessage("Downloading...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setCancelable(true);
         final MoveTask moveTask = new MoveTask(MainActivity.this, mProgressDialog);
         String path = getFilesDir().getAbsolutePath() + File.separator + "nmap" + File.separator + "nmap";
         moveTask.execute(path);
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                moveTask.cancel(true);
+            }
+        });
     }
 
-    public void unzipNmap() {
+    public void unzipNmap(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -634,12 +636,20 @@ public class MainActivity extends AppCompatActivity {
         mProgressDialog.setCancelable(true);
         final UnzipTask unzipNmap = new UnzipTask(MainActivity.this, mProgressDialog, false);
         String nmap = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.zip";
-        unzipNmap.execute(nmap);
+        try {
+            unzipNmap.execute(nmap);
+        } catch (Exception e) {}
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                unzipNmap.cancel(true);
+            }
+        });
     }
 
-    public void unzipBinary() {
+    public void unzipBinary(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -650,6 +660,12 @@ public class MainActivity extends AppCompatActivity {
         String bin = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap-binary.zip";
         final UnzipTask unzipBin = new UnzipTask(MainActivity.this, mProgressDialog, true);
         unzipBin.execute(bin);
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                unzipBin.cancel(true);
+            }
+        });
     }
 }
 

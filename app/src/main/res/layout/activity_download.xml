@@ -9,43 +9,10 @@
     <Button
         android:id="@+id/download_button"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="25"
+        android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
         android:background="@color/colorPrimaryDark"
-        android:text="Download binary"
-        android:outlineProvider="paddedBounds"/>
-
-    <Button
-        android:id="@+id/extract_button"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="25"
-        android:layout_gravity="center_vertical"
-        android:background="@color/colorPrimaryDark"
-        android:text="Extract binary"
-        android:outlineProvider="paddedBounds"/>
-
-    <!--
-    <Button
-        android:id="@+id/untar_button"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="25"
-        android:layout_gravity="center_vertical"
-        android:background="@color/colorPrimaryDark"
-        android:text="Untar binary"
-        android:outlineProvider="paddedBounds"/>
-        -->
-
-    <Button
-        android:id="@+id/move_button"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="25"
-        android:layout_gravity="center_vertical"
-        android:background="@color/colorPrimaryDark"
-        android:text="Move binary"
+        android:text="Install Nmap"
         android:outlineProvider="paddedBounds"/>
 
 </LinearLayout>

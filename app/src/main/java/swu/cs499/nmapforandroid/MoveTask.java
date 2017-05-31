@@ -64,9 +64,10 @@ public class MoveTask extends AsyncTask<String, Integer, String> {
             input = process.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(input));
             String line;
-            Log.i("move", "start");
+            int progress = 30;
             while ((line = br.readLine()) != null) {
-                Log.i("move", line);
+                progress++;
+                publishProgress(progress);
             }
 
             publishProgress(100);
@@ -93,11 +94,11 @@ public class MoveTask extends AsyncTask<String, Integer, String> {
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 getClass().getName());
         mWakeLock.acquire();
-        mProgressDialog.show();
     }
 
     @Override
     protected void onProgressUpdate(Integer... progress) {
+        mProgressDialog.show();
         super.onProgressUpdate(progress);
         // if we get here, length is known, now set indeterminate to false
         mProgressDialog.setIndeterminate(false);
@@ -111,7 +112,5 @@ public class MoveTask extends AsyncTask<String, Integer, String> {
         mProgressDialog.dismiss();
         if (result != null)
             Toast.makeText(context,"Move error: "+result, Toast.LENGTH_LONG).show();
-        else
-            Toast.makeText(context,"Move finished", Toast.LENGTH_SHORT).show();
     }
 }
