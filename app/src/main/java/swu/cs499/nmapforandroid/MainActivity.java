@@ -103,8 +103,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void needToDownload(Context context) {
-        String string = "Nmap binary is not installed. Please go to settings and perform the following steps:" +
-                "\n\t1. Download binary\n\t2. Unzip binary\n\t3. Move binary";
+        String string = "Nmap is not installed. Please go to settings to install";
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         //set title
@@ -160,34 +159,18 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("Settings\n");
 
         Button downloadButton = (Button) promptView.findViewById(R.id.download_button);
-        Button extractButton = (Button) promptView.findViewById(R.id.extract_button);
-        Button moveButton = (Button) promptView.findViewById(R.id.move_button);
 
         downloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                downloadNmap();
-                downloadBinary();
-                //download();
+                ProgressDialog mProgressDialog = null;
+                downloadNmap(mProgressDialog);
+                downloadBinary(mProgressDialog);
+                unzipBinary(mProgressDialog);
+                unzipNmap(mProgressDialog);
+                move(mProgressDialog);
             }
         });
-
-        extractButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //extract();
-                unzipBinary();
-                unzipNmap();
-            }
-        });
-
-        moveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                move();
-            }
-        });
-
         builder.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 dialog.cancel();
@@ -225,8 +208,13 @@ public class MainActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_CODE);
             }
-
-            settingsDialog();
+            ProgressDialog mProgressDialog = null;
+            downloadNmap(mProgressDialog);
+            downloadBinary(mProgressDialog);
+            unzipBinary(mProgressDialog);
+            unzipNmap(mProgressDialog);
+            move(mProgressDialog);
+            //settingsDialog();
 
             return true;
         }
@@ -559,9 +547,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void downloadBinary() {
+
+    public void downloadBinary(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -598,7 +587,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
             return;
         }
-        binaries.execute(url);
+        try {
+            binaries.execute(url);
+        } catch (Exception e) {}
         mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
@@ -607,9 +598,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void downloadNmap() {
+    public void downloadNmap(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -620,26 +611,38 @@ public class MainActivity extends AppCompatActivity {
 
         final DownloadTask data = new DownloadTask(MainActivity.this, mProgressDialog, false);
         data.execute("https://github.com/kost/nmap-android/releases/download/v7.31/nmap-7.31-data.zip");
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                data.cancel(true);
+            }
+        });
     }
 
-    public void move() {
+    public void move(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        mProgressDialog.setMessage("Moving...");
+        mProgressDialog.setMessage("Downloading...");
         mProgressDialog.setIndeterminate(true);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setCancelable(true);
         final MoveTask moveTask = new MoveTask(MainActivity.this, mProgressDialog);
         String path = getFilesDir().getAbsolutePath() + File.separator + "nmap" + File.separator + "nmap";
         moveTask.execute(path);
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                moveTask.cancel(true);
+            }
+        });
     }
 
-    public void unzipNmap() {
+    public void unzipNmap(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -649,12 +652,20 @@ public class MainActivity extends AppCompatActivity {
         mProgressDialog.setCancelable(true);
         final UnzipTask unzipNmap = new UnzipTask(MainActivity.this, mProgressDialog, false);
         String nmap = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap.zip";
-        unzipNmap.execute(nmap);
+        try {
+            unzipNmap.execute(nmap);
+        } catch (Exception e) {}
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                unzipNmap.cancel(true);
+            }
+        });
     }
 
-    public void unzipBinary() {
+    public void unzipBinary(ProgressDialog mProgressDialog) {
         // declare the dialog as a member field of your activity
-        ProgressDialog mProgressDialog;
+        //ProgressDialog mProgressDialog;
 
         // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(MainActivity.this, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
@@ -665,6 +676,12 @@ public class MainActivity extends AppCompatActivity {
         String bin = Environment.getExternalStorageDirectory().toString() + File.separator + Environment.DIRECTORY_DOWNLOADS + File.separator + "nmap-binary.zip";
         final UnzipTask unzipBin = new UnzipTask(MainActivity.this, mProgressDialog, true);
         unzipBin.execute(bin);
+        mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                unzipBin.cancel(true);
+            }
+        });
     }
 }
 
