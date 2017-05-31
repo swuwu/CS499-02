@@ -469,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 ArrayList<Port> ports = h.getPorts();
                 if (ports.size() != 0) {
-                    line += "Ports Found:\n";
+                    line += "Open Ports:\n";
                     line += "PORT     TYPE     SERVICE\n";
                     for (Port p : ports) {
                         line += p.getPort();
