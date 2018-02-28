@@ -4,12 +4,11 @@
       tools:context="swu.cs499.nmapforandroid.MainActivity">
 
     <item
-        android:id="@+id/about_settings"
-        android:title="@string/about_settings"
-        app:showAsAction="never"/>
-
+        android:id="@+id/action_help"
+        android:title="Help"/>
     <item
-        android:id="@+id/download_settings"
-        android:title="@string/download_settings"
-        app:showAsAction="never"/>
+        android:id="@+id/action_about"
+        android:orderInCategory="100"
+        android:title="About"
+        app:showAsAction="never" />
 </menu>

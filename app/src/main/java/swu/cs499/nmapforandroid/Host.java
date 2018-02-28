@@ -6,30 +6,30 @@ import java.util.ArrayList;
  * Created by swu on 5/1/17.
  */
 
-public class Host {
-
+public class Host
+{
     private String ip;
-    private String name;
-    private ArrayList<Port> ports = new ArrayList<Port>();
+    private ArrayList<Port> portList;
 
-    public Host(String ip, ArrayList<Port> p) {
+    public Host(String ip, ArrayList<Port> portList)
+    {
         this.ip = ip;
-        ports = p;
+        this.portList = portList;
     }
 
-    public String getIP() {
+    public Host(String ip)
+    {
+        this.ip = ip;
+        portList = new ArrayList<>();
+    }
+
+    public String getIp()
+    {
         return ip;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public ArrayList<Port> getPorts() {
-        return ports;
+    public ArrayList<Port> getPortList()
+    {
+        return portList;
     }
 }

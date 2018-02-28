@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <item android:title="Nmap">
+        <menu>
+            <item
+                android:id="@+id/nav_download"
+                android:title="Download" />
+            <item
+                android:id="@+id/nav_install"
+                android:title="Install" />
+            <item
+                android:id="@+id/nav_download_install"
+                android:title="Download &amp; Install" />
+        </menu>
+    </item>
+
+    <item android:title="App Bar">
+        <menu>
+            <item
+                android:id="@+id/nav_appbar_hide"
+                android:title="Hide" />
+            <item
+                android:id="@+id/nav_appbar_show"
+                android:title="Show" />
+        </menu>
+    </item>
+
+    <item android:title="Tabs">
+        <menu>
+            <item
+                android:id="@+id/nav_toolbar_hide"
+                android:title="Hide" />
+            <item
+                android:id="@+id/nav_toolbar_show"
+                android:title="Show" />
+        </menu>
+    </item>
+
+</menu>
