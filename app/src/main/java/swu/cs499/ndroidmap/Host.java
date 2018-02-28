@@ -1,4 +1,4 @@
-package swu.cs499.nmapforandroid;
+package swu.cs499.ndroidmap;
 
 import java.util.ArrayList;
 

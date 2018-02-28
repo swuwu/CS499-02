@@ -1,4 +1,4 @@
-package swu.cs499.nmapforandroid;
+package swu.cs499.ndroidmap;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

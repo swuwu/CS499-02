@@ -1,4 +1,4 @@
-package swu.cs499.nmapforandroid;
+package swu.cs499.ndroidmap;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -27,7 +26,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TabHost;
 
 import java.io.File;
 import java.net.URL;
@@ -291,9 +289,9 @@ public class MainActivity extends AppCompatActivity
     {
         AlertDialog.Builder builder =
                 new AlertDialog.Builder(context, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
-        String string = "WRITE_EXTERNAL_STORAGE permissions are required to download and install nmap.\n\n" +
-                        "If you don't want to grant permissions, you can manually download and install " +
-                        "nmap. \nFor instructions on how to do so:\n   www.github.com/SamWu157/CS499-02";
+        String string = "WRITE_EXTERNAL_STORAGE permissions are required to download, install, and run nmap.\n\n" +
+                        "You can manually download and install nmap if the app fails to install or installs the incorrect version. " +
+                        "\nInstructions on how to do so:\n   www.github.com/SamWu157/CS499-02";
         builder.setTitle("Missing Permissions");
         builder.setMessage(string);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
@@ -453,10 +451,21 @@ public class MainActivity extends AppCompatActivity
 
         switch (id)
         {
-            case R.id.action_help:
-                msg = " - if scan takes too long try stopping the scan and scanning a smaller address space\n\n" +
-                      " - if output is cut off try, hiding/showing the appbar or toolbar\n\n" +
-                      " - More info: www.github.com/SamWu157/CS499-02";
+            case R.id.action_usage:
+                msg = " - To start scanning:\n   Enter the desired Nmap arguments on the input line, then tap RUN\n\n" +
+                      " - The output from Nmap will appear in the output text box after the scan has finished\n\n" +
+                      " - To stop the scan:\n   Tap STOP\n\n" +
+                      " - The found tab attempts to parse the output from nmap creating a list of IP addresses/ports that" +
+                      " were found. To reset the list tap CLEAR.";
+                dialog("Usage", msg);
+                break;
+            case R.id.action_errors:
+                msg = " - if Nmap fails to run, ensure you granted WRITE_EXTERNAL_STORAGE permissions to the app." +
+                      " Also check that the correct binary is installed.\n\n" +
+                      " - if a scan takes too long try stopping and scanning a smaller address space\n\n" +
+                      " - if output is cut off try, hiding/showing the appbar or toolbar which can be done through the" +
+                      " navigation drawer\n\n" +
+                      " - More info: \n   www.github.com/SamWu157/CS499-02";
                 dialog("Help", msg);
                 break;
             case R.id.action_about:

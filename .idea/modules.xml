@@ -3,9 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CS499-02.iml" filepath="$PROJECT_DIR$/CS499-02.iml" />
-      <module fileurl="file://$PROJECT_DIR$/CS499-02.iml" filepath="$PROJECT_DIR$/CS499-02.iml" />
       <module fileurl="file://$PROJECT_DIR$/NmapForAndroid.iml" filepath="$PROJECT_DIR$/NmapForAndroid.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

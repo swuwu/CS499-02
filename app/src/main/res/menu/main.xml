@@ -1,11 +1,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
-      tools:context="swu.cs499.nmapforandroid.MainActivity">
+      tools:context="swu.cs499.ndroidmap.MainActivity">
 
-    <item
-        android:id="@+id/action_help"
-        android:title="Help"/>
+    <item android:title="Help">
+        <menu>
+            <group>
+                <item
+                    android:id="@+id/action_usage"
+                    android:title="Usage"/>
+                <item
+                    android:id="@+id/action_errors"
+                    android:title="Errors"/>
+            </group>
+        </menu>
+    </item>
+
     <item
         android:id="@+id/action_about"
         android:orderInCategory="100"

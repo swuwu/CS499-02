@@ -1,4 +1,4 @@
-package swu.cs499.nmapforandroid;
+package swu.cs499.ndroidmap;
 
 /**
  * Created by swu on 2/25/18.
