@@ -1,4 +1,4 @@
-###Install Nmap Manually
+### Install Nmap Manually
 
 **NOTE:** I am assuming you have SU access on your phone
 1. Download Nmap data and binaries for your phone's architecture
@@ -57,7 +57,7 @@ Try:
 - If output is cut off try hiding/showing the appbar or toolbar which can be done through the
 navigation drawer
 
-###Other Info.
+### Other Info.
 - Rooting your phone may provide more information from the Nmap scans.
 - Only tested on Samsung S7 and Nexus5
     - Nmap download/install failures may be caused by my code not correctly identifying 
